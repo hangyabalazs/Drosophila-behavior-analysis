@@ -18,7 +18,7 @@ sfilename = 'Red_mutant_groups_13tun.mat'; % define results file name
 Red_mutant_groups_13tun = Drosophila_speed('*old raw',path,sfilename);
 
 % Figure 2
-Drosi_PCA(Red_mutant_groups_13tun)
+Drosi_PCA(Red_mutant_groups_13tun,1)
 Behav_examples(Red_mutant_groups_13tun)
 
 % Figure 3
