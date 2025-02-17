@@ -1,15 +1,9 @@
-function Age_groups_plots(Red_mutant_groups_13tun)
-%AGE_GRROUPS_PLOTS   Age-dependent analyses.
-%   AGE_GRROUPS_PLOTS(DATA) creates the plots for age and genotype group
-%   comparisons with ANOVA test.
-%
-%   Required input arguments:
-%       RED_MUTANT_GROUPS_13TUN: preprocessed results struct calculated by
-%       the DROSOPHILA_SPEED funtion.
-%
-% See also DROSOPHILA_SPEED.
+function Age_groups_plots
+%AGE_GRROUPS_PLOTS creates the plots for age and genotype group comparisons
+%with ANOVA test.
 
-% Inicialize variables
+load('F:\Marci\Cikkhez\raw data\age groups raw\Red_mutant_groups_13tun.mat');
+
 GroupNameTag = [];
 ageNameTag = [];
 AnStopDrosiMeans = [];
@@ -18,9 +12,6 @@ AnSpeedupDrosiMeans = [];
 AnNoreactDrosiMeans = [];
 AnstopDurPerDrosi = [];
 AnMeanSpeedPerDrosi = [];
-
-% Loop through mutant lines and age groups to calculate reaction
-% time, stop duration, and reaction probabilities
 for mut = 1 : size(Red_mutant_groups_13tun,2)
     groupName = {Red_mutant_groups_13tun(mut).names};
     for age = 1:5
@@ -81,12 +72,43 @@ for mut = 1 : size(Red_mutant_groups_13tun,2)
         stopDursem(mut,age) = stopDurstd{mut,age}/sqrt(length(stopDurMean{mut,age}));
     end
 end
-
-% ANOVA
+ % ANOVA
 [~,~,statsdur] = anovan(AnstopDurPerDrosi,{ageNameTag,GroupNameTag},'model','interaction','varnames',{'ageNameTag','GroupNameTag'});%savefig('stopage');
-figure;[resultsdur,~,~,gnames] = multcompare(statsdur,'Dimension',[2]);title('stopdur');%savefig('noreactage');
+% figure;[resultsdur,~,~,gnames] = multcompare(statsdur,'Dimension',[2]);title('stopdur');%savefig('noreactage');
 [~,~,statmeans] = anovan(AnMeanSpeedPerDrosi,{ageNameTag,GroupNameTag},'model','interaction','varnames',{'ageNameTag','GroupNameTag'});%savefig('stopage');
-figure;[resultmeans,~,~,gnames] = multcompare(statmeans,'Dimension',[2]);title('meanspeed200');%savefig('noreactage');
+% figure;[resultmeans,~,~,gnames] = multcompare(statmeans,'Dimension',[2]);title('meanspeed200');%savefig('noreactage');
+
+%% Mann Whitney betw age
+
+MWageNameTag = deal(cell(1,5));
+MWstopPercDrosi = deal(cell(1,5));
+MWslowPercDrosi = deal(cell(1,5));
+MWspeedupPercDrosi = deal(cell(1,5));
+MWnoreactPercDrosi = deal(cell(1,5));
+MWstopDurPerDrosi = deal(cell(1,5));
+MWMeanSpeedPerDrosi = deal(cell(1,5));
+for age = 1:5
+    for mut = 1:5
+        animNum = size(stoppReactionTime{mut,age},1);
+        for KW = 1:animNum
+            AgeName = {AgeNameI{age}};
+            MWageNameTag{age} = [MWageNameTag{age}; AgeName];   
+        end
+        
+        MWstopPercDrosi{age} = [MWstopPercDrosi{age};stopPercDrosi{mut,age}];
+        MWslowPercDrosi{age} = [MWslowPercDrosi{age};slowPercDrosi{mut,age}];
+        MWspeedupPercDrosi{age} = [MWspeedupPercDrosi{age};speedupPercDrosi{mut,age}];
+        MWnoreactPercDrosi{age} = [MWnoreactPercDrosi{age};noreactPercDrosi{mut,age}];
+    end
+end
+
+
+for agec = 1:4
+   [manWPStopPec(agec),manWHStopPec(agec)] = ranksum(MWstopPercDrosi{agec},MWstopPercDrosi{agec+1},'alpha',siglev);
+   [manWPSlowPec(agec),manWHSlowPec(agec)] = ranksum(MWslowPercDrosi{agec},MWslowPercDrosi{agec+1},'alpha',siglev);
+   [manWPSpeedPec(agec),manWHSpeedPec(agec)] = ranksum(MWspeedupPercDrosi{agec},MWspeedupPercDrosi{agec+1},'alpha',siglev);
+   [manWPnoreact(agec),manWHnoreact(agec)] = ranksum(MWnoreactPercDrosi{agec},MWnoreactPercDrosi{agec+1},'alpha',siglev);
+end
 
 % Plots
 figure;
@@ -122,6 +144,7 @@ setmyplot_balazs
 legend('Dop1,2 EcR', 'Dop1R', 'Dop2R', 'w1118', 'y1w67c23');
 title('Noreact ratio');
 
+
 figure;
 for i = 1:5
     errorshade(1:5,RealmeanMeanSpeedBefore200(i,:)',meanspeed200sem(i,:)','LineColor',colorLine(i),'ShadeColor',colorLine(i));hold on;
@@ -137,3 +160,5 @@ end
 setmyplot_balazs
 legend('Dop1,2 EcR', 'Dop1R', 'Dop2R', 'w1118', 'y1w67c23');
 title('Stop dur ratio');
+
+close 
